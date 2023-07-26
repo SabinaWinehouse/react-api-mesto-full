@@ -5,7 +5,6 @@ const { isURL } = require('validator');
 const {
   getAllUsers,
   getUserById,
-  createUser,
   updateUserAvatar,
   updateUserProfile,
   getMe,
@@ -19,8 +18,6 @@ userRouter.get('/:id', celebrate({
     userId: Joi.string().hex().length(24),
   }),
 }), getUserById);
-
-userRouter.post('/', createUser);
 
 userRouter.patch('/me', celebrate({
   body: Joi.object().keys({

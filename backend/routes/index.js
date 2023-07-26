@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { isURL } = require('validator');
 const {
   Joi,
   celebrate,
@@ -17,7 +18,17 @@ const userJoiSchema = {
   }),
 };
 
-router.post('/signup', celebrate(userJoiSchema), createUser);
+const userSignupJoiSchema = {
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().custom(isURL),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+  }),
+};
+
+router.post('/signup', celebrate(userSignupJoiSchema), createUser);
 router.post('/signin', celebrate(userJoiSchema), login);
 
 router.use(auth);

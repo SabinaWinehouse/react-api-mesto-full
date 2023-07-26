@@ -10,7 +10,9 @@ const {
   USER_NOT_FOUND,
   CONFLICT,
   INCORRECT_LOGIN_DATA,
+  BAD_REQUEST,
 } = require('../constants/errorMessages');
+const BadRequestError = require('../errors/BadRequestError');
 
 const { JWT_TOKEN_KEY = 'my-secret-jwt' } = process.env;
 
@@ -55,16 +57,18 @@ module.exports.createUser = (req, res, next) => {
       })
         .then((user) => {
           res.status(201)
-            .send({ data: { ...user, password: '' } });
+            .send({ data: { ...user } });
         })
         .catch((error) => {
           if (error.name === 'MongoServerError' && error.code === 11000) {
             next(new ConflictError(CONFLICT));
+          } else if (error.name === 'ValidationError') {
+            next(new BadRequestError(INCORRECT_LOGIN_DATA));
           } else {
             next(error);
           }
         });
-    });
+    }).catch((err) => next(err));
 };
 
 module.exports.updateUserProfile = (req, res, next) => {
@@ -83,7 +87,13 @@ module.exports.updateUserProfile = (req, res, next) => {
   )
     .orFail(new NotFoundError(USER_NOT_FOUND))
     .then((user) => res.send({ data: user }))
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        next(new BadRequestError(BAD_REQUEST));
+      } else {
+        next(error);
+      }
+    });
 };
 
 module.exports.updateUserAvatar = (req, res, next) => {
@@ -107,7 +117,7 @@ module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, process.env.JWT_TOKEN_KEY, { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, JWT_TOKEN_KEY, { expiresIn: '7d' });
       res.send({ token });
     })
     .catch(() => next(new UnauthorizedError(INCORRECT_LOGIN_DATA)));

@@ -5,6 +5,7 @@ const ForbiddenError = require('../errors/ForbiddenError');
 const {
   CARD_NOT_FOUND,
   NOT_YOUR_CARD,
+  BAD_REQUEST,
 } = require('../constants/errorMessages');
 
 module.exports.getAllCards = (req, res, next) => {
@@ -25,15 +26,22 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
 
-  Card.findByIdAndRemove(cardId)
+  Card.findById(cardId)
     .orFail(new NotFoundError(CARD_NOT_FOUND))
     .then((card) => {
-      if (card.owner.toString() !== req.user._id) {
-        throw new ForbiddenError(NOT_YOUR_CARD);
+      if (!card.owner.equals(req.user._id)) {
+        return next(new ForbiddenError(NOT_YOUR_CARD));
       }
+      return card.deleteOne()
+        .then(() => res.send(card));
     })
-    .then(card => res.send({ data: card }))
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        next(new BadRequestError(BAD_REQUEST));
+      } else {
+        next(error);
+      }
+    });
 };
 
 module.exports.likeCard = (req, res, next) => {
