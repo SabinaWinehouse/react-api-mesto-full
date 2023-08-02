@@ -20,7 +20,13 @@ module.exports.createCard = (req, res, next) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(201).send(card))
-    .catch(() => next(new BadRequestError()));
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        next(new BadRequestError(BAD_REQUEST));
+      } else {
+        next(error);
+      }
+    });
 };
 
 module.exports.deleteCard = (req, res, next) => {

@@ -54,10 +54,11 @@ module.exports.createUser = (req, res, next) => {
         avatar,
         email,
         password: hash,
-      })
-        .then((user) => {
+      }).then(() => {
           res.status(201)
-            .send({ data: { ...user } });
+            .send({
+              name, about, avatar, email,
+            });
         })
         .catch((error) => {
           if (error.name === 'MongoServerError' && error.code === 11000) {
@@ -110,7 +111,13 @@ module.exports.updateUserAvatar = (req, res, next) => {
   )
     .orFail(new NotFoundError(USER_NOT_FOUND))
     .then((newAvatar) => res.send({ data: newAvatar }))
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        next(new BadRequestError(BAD_REQUEST));
+      } else {
+        next(error);
+      }
+    });
 };
 
 module.exports.login = (req, res, next) => {

@@ -22,7 +22,12 @@ const userSignupJoiSchema = {
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().custom(isURL),
+    avatar: Joi.string().custom((url, helpers) => {
+      if (!isURL(url)) {
+        return helpers.error('URL is invalid');
+      }
+      return url;
+    }),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
