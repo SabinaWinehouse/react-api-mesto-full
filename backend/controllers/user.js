@@ -23,7 +23,7 @@ module.exports.getAllUsers = (req, res, next) => {
 };
 
 module.exports.getUserById = (req, res, next) => {
-  User.findById(req.params._id)
+  User.findById(req.params.id)
     .orFail(new NotFoundError(USER_NOT_FOUND))
     .then((user) => res.send({ data: user }))
     .catch(next);
