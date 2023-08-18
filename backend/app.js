@@ -15,7 +15,7 @@ const { SERVER_ERROR } = require('./constants/errorMessages');
 const { PORT = 3000 } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://localhost:27017/aroundb').then(() => console.log('CONNECTED'));
+mongoose.connect('mongodb://localhost:27017/aroundb').then(() => {});
 app.use(helmet());
 
 app.use(cors());

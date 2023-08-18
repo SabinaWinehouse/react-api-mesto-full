@@ -55,11 +55,11 @@ module.exports.createUser = (req, res, next) => {
         email,
         password: hash,
       }).then(() => {
-          res.status(201)
-            .send({
-              name, about, avatar, email,
-            });
-        })
+        res.status(201)
+          .send({
+            name, about, avatar, email,
+          });
+      })
         .catch((error) => {
           if (error.name === 'MongoServerError' && error.code === 11000) {
             next(new ConflictError(CONFLICT));
